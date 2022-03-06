@@ -1,7 +1,5 @@
-.foo {
-	color: red;
-}
-
-.baz {
-	color: green;
+.mix {
+	color-1: color-mix(in oklch, red 35%, blue 65%);
+	color-2: color-mix(in oklch, red 10%, blue 20%);
+	color-3: color-mix(in oklch, red, blue);
 }

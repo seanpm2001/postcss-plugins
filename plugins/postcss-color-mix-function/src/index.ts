@@ -1,52 +1,75 @@
+import postcssProgressiveCustomProperties from '@csstools/postcss-progressive-custom-properties';
+import type { Declaration, Result } from 'postcss';
 import type { PluginCreator } from 'postcss';
+import { hasFallback } from './has-fallback-decl';
+import { hasSupportsAtRuleAncestor } from './has-supports-at-rule-ancestor';
+import { modifiedValues } from './modified-value';
 
-type pluginOptions = { color?: string, preserve?: boolean };
+type basePluginOptions = {
+	preserve: boolean,
+}
 
-const creator: PluginCreator<pluginOptions> = (opts?: pluginOptions) => {
-	const options = Object.assign(
-		// Default options
-		{
-			color: null,
-			preserve: false,
-		},
-		// Provided options
-		opts,
-	);
-
+/** Transform color-mix() function in CSS. */
+const basePlugin: PluginCreator<basePluginOptions> = (opts: basePluginOptions) => {
+	const preserve = 'preserve' in Object(opts) ? Boolean(opts.preserve) : false;
 	return {
 		postcssPlugin: 'postcss-color-mix-function',
-		Declaration(decl) {
-			if (decl.value === 'red') {
-				// Determine the new value.
-				let newValue = 'blue';
-				if (options.color) {
-					newValue = options.color;
-				}
+		Declaration: (decl: Declaration, { result }: { result: Result }) => {
+			if (hasFallback(decl)) {
+				return;
+			}
 
-				// Check if it is different from the current value.
-				if (newValue === decl.value) {
-					return;
-				}
+			if (hasSupportsAtRuleAncestor(decl)) {
+				return;
+			}
 
-				// Insert the new value before the current value.
-				decl.cloneBefore({
-					prop: 'color',
-					value: newValue,
-				});
+			const originalValue = decl.value;
+			if (originalValue.indexOf('color-mix(') === -1) {
+				return;
+			}
 
-				// If the current value is preserved we are done and return here.
-				if (options.preserve) {
-					return;
-				}
+			const modified = modifiedValues(originalValue, decl, result, preserve);
+			if (typeof modified === 'undefined') {
+				return;
+			}
 
-				// If the current value is not preserved we remove it.
-				decl.remove();
+			if (preserve) {
+				decl.cloneBefore({ value: modified });
+			} else {
+				decl.value = modified;
 			}
 		},
 	};
 };
 
-creator.postcss = true;
+basePlugin.postcss = true;
 
-export default creator;
+type pluginOptions = {
+	preserve?: boolean,
+	enableProgressiveCustomProperties?: boolean,
+}
+
+/* Transform color() function in CSS. */
+const postcssPlugin: PluginCreator<pluginOptions> = (opts?: pluginOptions) => {
+	const options = Object.assign({
+		preserve: false,
+		enableProgressiveCustomProperties: true,
+	}, opts);
+
+	if (options.enableProgressiveCustomProperties && options.preserve) {
+		return {
+			postcssPlugin: 'postcss-color-mix-function',
+			plugins: [
+				postcssProgressiveCustomProperties(),
+				basePlugin(options),
+			],
+		};
+	}
+
+	return basePlugin(options);
+};
+
+postcssPlugin.postcss = true;
+
+export default postcssPlugin;
 
