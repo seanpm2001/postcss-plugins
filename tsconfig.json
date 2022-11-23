@@ -1,8 +1,5 @@
 {
 	"compilerOptions": {
-		"diagnostics": true,
-		"explainFiles": true,
-		"extendedDiagnostics": true,
 		"moduleResolution": "node",
 		"allowJs": false,
 		"target": "es2020",
@@ -12,6 +9,8 @@
 		"declaration": true,
 	},
 	"watchOptions": {
-		"watchFile": "PriorityPollingInterval"
+		"watchFile": "PriorityPollingInterval",
+		"excludeDirectories": ["./*"],
+		"excludeFiles": ["*"]
 	}
 }
