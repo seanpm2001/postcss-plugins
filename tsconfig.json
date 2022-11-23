@@ -9,6 +9,9 @@
 		"lib": ["es2020"],
 		"allowSyntheticDefaultImports": true,
 		"module": "es6",
-		"declaration": true
+		"declaration": true,
+	},
+	"watchOptions": {
+		"watchFile": "PriorityPollingInterval"
 	}
 }
