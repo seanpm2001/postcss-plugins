@@ -660,6 +660,8 @@ class WatchProgramHelper {
 		}
 	}
 	async wait() {
+		console.log('=== START WAITING ===');
+
 		var _a;
 		if (this._startDeferred) {
 			const timeout = await this._startDeferred.promise;
@@ -668,8 +670,13 @@ class WatchProgramHelper {
 				this._startDeferred = null;
 				this._finishDeferred = null;
 			}
+
+			console.log('=== STILL WAITING ===');
+
 			await ((_a = this._finishDeferred) === null || _a === void 0 ? void 0 : _a.promise);
 		}
+
+		console.log('=== FINISHED WAITING ===');
 	}
 }
 /**
@@ -756,6 +763,9 @@ function typescript(options = {}) {
 	const formatHost = createFormattingHost(ts, parsedOptions.options);
 	const resolveModule = createModuleResolver(ts, formatHost);
 	let program = null;
+
+	console.log('----- START ROLLUP TYPESCRIPT -----');
+
 	return {
 		name: 'typescript',
 		buildStart(rollupOptions) {
